@@ -71,7 +71,7 @@ async def get_user_orders(user_id: int, db: AsyncSession = Depends(get_db)):
     books = result.fetchall()
     return {"user_id": user_id, "books": [{"title": title, "rating": rating} for title, rating in books]}  
 
-# Get all orders (order ID & book ID) for a user
+# Get all orders (order ID & book ID) for a specific user
 @app.get("/user/{user_id}/orders/details")
 async def get_user_orders_details(user_id: int, db: AsyncSession = Depends(get_db)):
     stmt = select(Order.id, Order.book_id).filter(Order.user_id == user_id)
