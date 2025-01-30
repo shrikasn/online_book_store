@@ -59,7 +59,7 @@ class FeedbackCreate(BaseModel):
     book_id: int
     content: str
 
-# get book details for a user
+# Get book details for a user
 @app.get("/user/{user_id}/orders")
 async def get_user_orders(user_id: int, db: AsyncSession = Depends(get_db)):
     stmt = (
@@ -71,7 +71,7 @@ async def get_user_orders(user_id: int, db: AsyncSession = Depends(get_db)):
     books = result.fetchall()
     return {"user_id": user_id, "books": [{"title": title, "rating": rating} for title, rating in books]}  
 
-#  get all orders (order ID & book ID) for a user
+# Get all orders (order ID & book ID) for a user
 @app.get("/user/{user_id}/orders/details")
 async def get_user_orders_details(user_id: int, db: AsyncSession = Depends(get_db)):
     stmt = select(Order.id, Order.book_id).filter(Order.user_id == user_id)
@@ -79,7 +79,7 @@ async def get_user_orders_details(user_id: int, db: AsyncSession = Depends(get_d
     orders = result.fetchall()
     return {"user_id": user_id, "orders": [{"order_id": order_id, "book_id": book_id} for order_id, book_id in orders]}
 
-#  get all feedback for a specific book
+# Get all feedback for a specific book
 @app.get("/book/{book_id}/feedback")
 async def get_book_feedback(book_id: int, db: AsyncSession = Depends(get_db)):
     stmt = select(Feedback.content).filter(Feedback.book_id == book_id)
@@ -87,7 +87,7 @@ async def get_book_feedback(book_id: int, db: AsyncSession = Depends(get_db)):
     feedback_list = result.fetchall()
     return {"book_id": book_id, "feedback": [content for (content,) in feedback_list]}
 
-#allow feedback only for purchased books
+# Allow feedback only for purchased books
 @app.post("/feedback/add")
 async def add_feedback(feedback: FeedbackCreate, db: AsyncSession = Depends(get_db)):
     # Check if user has ordered the book
@@ -104,3 +104,11 @@ async def add_feedback(feedback: FeedbackCreate, db: AsyncSession = Depends(get_
     db.add(new_feedback)
     await db.commit()
     return {"message": "Feedback added successfully"}
+
+@app.get("/books")
+async def get_books(page: int = 1, limit: int = 20, db: AsyncSession = Depends(get_db)):
+    stmt = select(Book.title, Book.rating).offset((page - 1) * limit).limit(limit)
+    result = await db.execute(stmt)
+    books = result.fetchall()
+    
+    return {"page": page, "limit": limit, "books": [{"title": title, "rating": rating} for title, rating in books]}
